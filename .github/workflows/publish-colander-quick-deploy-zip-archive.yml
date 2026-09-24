@@ -37,7 +37,7 @@ jobs:
         uses: actions/configure-pages@v5
       - name: "publish the static website for colander quick deploy (static landing page from docker/README.md + zip file of docker folder"
         run: |
-          apt-get update -y && apt-get install -y md2html gettext
+          apt-get update -y && apt-get install -y md2html gettext zip
           mkdir -p public/
           md2html --github --output=public/index.html docker/README.md
           export CONTENT=$(md2html --github docker/README.md) ; cat docker/docs/template.html | envsubst > public/index.html
