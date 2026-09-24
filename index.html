@@ -1,3 +1,131 @@
-proute!
+<div style="display: flex; align-items: center; flex-direction: column;">
+  <img src="./android-chrome-512x512.png" alt="Alt Text" style="max-width: 100px;">
+</div>
+<h1>Colander quick deploy</h1>
+<h2>Download</h2>
+<p>You can download colander quick deploy <a href="./colander-quick-deploy.zip">from here</a></p>
+<h1>Using docker to deploy the PTS stack.</h1>
+<p>This folder contains the docker compose definition files which allows you to deploy the whole PTS stack or pick
+only the component(s) you want.</p>
+<h2>Starting the components you need (self-service/standalone mode)</h2>
+<p>The following tools should work with their default configuration. If you want to customize your deployment, you can copy <code>.env.example</code> to <code>.env</code> and
+edit the settings exposed there to match your requirements.</p>
+<h3>Before starting</h3>
+<p>You first need a basic .env file with django secret key for colander/threatr and minio access/secret keys:</p>
+<pre><code class="language-bash">docker compose -f compose-init.yml up -d
+</code></pre>
+<h3>Start colander only</h3>
+<pre><code class="language-bash">docker compose -f compose-colander.yml up -d
+</code></pre>
+<p>By default, colander should be available at:</p>
+<ul>
+<li><a href="http://localhost:5000">http://localhost:5000</a></li>
+<li><a href="https://colander.local:4443">https://colander.local:4443</a> (if you put <code>colander.local</code> as additional hostname on line starting by <code>127.0.0.1</code>)</li>
+</ul>
+<h3>Start threatr only</h3>
+<pre><code class="language-bash">docker compose -f compose-threatr.yml up -d
+</code></pre>
+<p>By default, threatr should be available at:</p>
+<ul>
+<li><a href="http://localhost:5001">http://localhost:5001</a></li>
+<li><a href="https://threatr.local:4443">https://threatr.local:4443</a> (if you put <code>threatr.local</code> as additional hostname on line starting by <code>127.0.0.1</code>)</li>
+</ul>
+<h3>Start mandolin only</h3>
+<pre><code class="language-bash">docker compose -f compose-mandolin.yml up -d
+</code></pre>
+<p>By default, mandolin should be available at:</p>
+<ul>
+<li><a href="http://localhost:5002">http://localhost:5002</a></li>
+<li><a href="https://mandolin.local:4443">https://mandolin.local:4443</a> (if you put <code>mandolin.local</code> as additional hostname on line starting by <code>127.0.0.1</code>)</li>
+</ul>
+<h3>Start cyberchef only</h3>
+<pre><code class="language-bash">docker compose -f compose-cyberchef.yml up -d
+</code></pre>
+<p>By default, mandolin should be available at:</p>
+<ul>
+<li><a href="http://localhost:5003">http://localhost:5003</a></li>
+<li><a href="https://cyberchef.local:4443">https://cyberchef.local:4443</a> (if you put <code>cyberchef.local</code> as additional hostname on line starting by <code>127.0.0.1</code>)</li>
+</ul>
+<h2>Starting a &quot;à la carte&quot; stack (multiple tools)</h2>
+<p>Of course, you can pick more than one tool by giving the corresponding compose file as a value of <code>-f</code> argument of
+the docker compose CLI:</p>
+<pre><code class="language-bash">docker compose -f compose-colander.yml -f compose-threatr.yml up -d
+</code></pre>
+<h2>Starting the whole stack</h2>
+<p>The following command should get you up and running fairly quickly (by default, you may be able to start straight away.
+But in some case you may need to adjust the <code>.env</code> file, so take a look to it. It should be self-explanatory):</p>
+<pre><code class="language-bash">docker compose up -d
 
-<a href="./out.zip">download</a>
+# or the following if you cannot obtain a valid letsencrypt certificate because of your context/requirements (it
+# will generate a self signed certificate ./data/traefik/certs/self-signed/cert.pem ; which you
+# can add to your Pirogue's operating system trust store) so your pirogue will be able to connect to colander using
+# https and this certificate (see below)
+# This compose file will also expose Traefik's dashboard on port http://localhost:8080
+docker compose -f compose-dev.yml up -d
+</code></pre>
+<p>This will :</p>
+<ul>
+<li>create a self signed certificate (allowing you to use pirogue tooling to connect to colander without requiring a certificate
+issued by a Certificate Authority).</li>
+<li>start the whole stack (colander, threatr, mandolin, etc.)<ul>
+<li>you'll get access to:<ul>
+<li><a href="http://localhost:5000">Colander</a></li>
+<li><a href="http://localhost:5001">Threatr</a></li>
+<li><a href="http://localhost:5002">Cyberchef</a></li>
+<li><a href="http://localhost:8080/">Traefik dashboard</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Note: those tools can also be accessed through their respectie hostnames (if you add them to your <code>/etc/hosts</code> file):</p>
+<ul>
+<li><a href="https://colander.local:4443/">Colander</a></li>
+<li><a href="https://threatr.local:4443/">Threatr</a></li>
+<li><a href="https://cyberchef.local:4443/">Cyberchef</a></li>
+<li><a href="http://traefik.local:8080/">Traefik dashboard</a></li>
+</ul>
+<h2>Creating a Threatr integration for your colander</h2>
+<p>Below are the quick steps to connect your Colander to yoyr Threatr
+(this is also <a href="https://pts-project.org/docs/colander/deployment/#connecting-colander-to-threatr">documented on our website</a>):</p>
+<ul>
+<li><ol>
+<li>Creating super users on both tools:</li>
+</ol>
+<pre><code class="language-bash">docker compose -f compose-dev.yml exec colander-front /entrypoint python manage.py createsuperuser
+docker compose -f compose-dev.yml exec threatr-front /entrypoint python manage.py createsuperuser
+</code></pre>
+</li>
+<li><ol start="2">
+<li>Creating a simple user <code>colander-user</code> in threatr (via <a href="https://threatr.local/admin">https://threatr.local/admin</a>)</li>
+</ol>
+</li>
+<li><ol start="3">
+<li>Creating an API key for <code>colander-user</code> in threatr (via <a href="https://threatr.local/admin">https://threatr.local/admin</a>)</li>
+</ol>
+</li>
+<li><ol start="4">
+<li>Adding a Backend Credential in threatr with the following value (replace <code>thetoken</code> by the token you just created in threatr):
+<code>{ &quot;api_key&quot;: &quot;thetoken&quot;}</code></li>
+</ol>
+</li>
+</ul>
+<p><strong>note:</strong> You can also run <code>docker compose up -d</code> but you'll not get access to Traefik's dashboard nor generate a self signed certificate.
+<code>compose.yml</code> is the base file can be used as a base for production deployments. <code>compose-dev.yml</code> overrides some of the service definitions
+of the <code>compose.yml</code>.</p>
+<hr>
+<p>TODO:</p>
+<ul>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled>publish a .zip archive on colander-ansible Github Pages, this archive is a dump of the docker folder of this repository</li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled>polish .env file</li>
+</ul>
+<hr>
+<ul>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled>hardening: readonly/tmpfs containers, cap_drop ALL, security_opt no-new-privileges security_opts ; .... <a href="https://docs.docker.com/compose/trust-model/">https://docs.docker.com/compose/trust-model/</a></li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled>dans <code>roles/colander/tasks/configure.yml</code>, les dockerfile postgres et traefik ont été déplacés vers docker/compose/{postgres,traefik}/Dockerfile.
+il faut s'assurer qu'on a pas besoin de surcharger ça avec ansible ; ou du moins gérer le build des images basé
+sur un env ou équivalent :
+<code>./templates/traefik/Dockerfile.j2</code>
+<code>./templates/postgres/Dockerfile.j2</code></li>
+<li class="task-list-item"><input type="checkbox" class="task-list-item-checkbox" disabled># FIXME implement: stack.services.traefik.vars.enable_dashboard</li>
+</ul>
