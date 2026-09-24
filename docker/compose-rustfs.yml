@@ -1,0 +1,30 @@
+include:
+  - compose-base.yml
+
+volumes:
+  rustfs_data:
+  rustfs_logs:
+  # TO USE RUSTFS:
+  # - rsync -a --delete ./data/minio/ /home/vagrant/.local/share/docker/volumes/docker_rustfs_data/_data/
+  # - create an access key in rustfs, match with MINIO_ACCESS_KEY / MINIO_SECRET_KEY values
+  # - change MINIO_ENDPOINT from minio:9000 to rustfs:9000
+services:
+  rustfs:
+    image: "rustfs/rustfs:latest"
+    # ports:
+    #   - 9000:9000
+    #   - 9001:9001
+    volumes:
+      # - ${MINIO_VOLUME_PATH:-production_minio_data}:/data
+      - rustfs_logs:/logs
+      - rustfs_data:/data
+    networks:
+      - backend
+    environment:
+      RUSTFS_ACCESS_KEY: "rustfsadmin" #${MINIO_ACCESS_KEY}"
+      RUSTFS_SECRET_KEY: "rustfsadmin" #"${MINIO_SECRET_KEY}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.traefik.rule: "Host(`rustfs.local`)"
+      traefik.http.routers.traefik.entrypoints: "websecure"
+      traefik.http.routers.traefik.tls: "true"

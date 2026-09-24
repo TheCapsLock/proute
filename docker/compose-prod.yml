@@ -1,0 +1,22 @@
+include:
+  - "compose.yml"
+
+services:
+  traefik:
+    ports: !override
+      # - "${TRAEFIK_HTTP_BINDING:-0.0.0.0:8000}:80"
+      - "${TRAEFIK_HTTP_BINDING:-0.0.0.0:80}:80"
+      # - "${TRAEFIK_HTTPS_BINDING:-0.0.0.0:4443}:443"
+      - "${TRAEFIK_HTTPS_BINDING:-0.0.0.0:443}:443"
+
+  colander-front:
+    ports: !override []
+
+  threatr-front:
+    ports: !override []
+
+  mandolin:
+    ports: !override []
+
+  cyberchef:
+    ports: !override []
